@@ -3,11 +3,11 @@
  *
  * EcalTrigPrimProducer produces a EcalTrigPrimDigiCollection
  * The barrel code does a detailed simulation
- * The code for the endcap is simulated in a rough way, due to missing strip
+ * The code for the endcap is simulated in a rough way, due to missing  strip
  geometry
  *
  *
- * \author Ursula Berthon, Stephanie Baffioni, LLR Palaiseau
+ * \author Ursula Berthon, Stephanie Baffioni,  LLR Palaiseau
  *
  * \version   1st Version may 2006
  * \version   2nd Version jul 2006
@@ -44,9 +44,6 @@
 #include "CondFormats/DataRecord/interface/EcalTPGTowerStatusRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTPGWeightGroupRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTPGWeightIdMapRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGOddWeightGroupRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGOddWeightIdMapRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGTPModeRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTPGPedestalsRcd.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGCrystalStatus.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGFineGrainEBGroup.h"
@@ -63,9 +60,6 @@
 #include "CondFormats/EcalObjects/interface/EcalTPGTowerStatus.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGWeightGroup.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGWeightIdMap.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGOddWeightGroup.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGOddWeightIdMap.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGTPMode.h"
 
 #include "Geometry/EcalMapping/interface/EcalMappingRcd.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
@@ -92,7 +86,6 @@ private:
   bool tcpFormat_;
   bool debug_;
   bool famos_;
-  bool tpInfoPrintout_;
   edm::EDGetTokenT<EBDigiCollection> tokenEB_;
   edm::EDGetTokenT<EEDigiCollection> tokenEE_;
 
@@ -109,10 +102,8 @@ private:
 
   // for strips
   edm::ESGetToken<EcalTPGSlidingWindow, EcalTPGSlidingWindowRcd> tokenEcalTPGSlidingWindow_;
-  edm::ESGetToken<EcalTPGWeightIdMap, EcalTPGWeightIdMapRcd> tokenEcalTPGWeightIdMap_;
-  edm::ESGetToken<EcalTPGWeightGroup, EcalTPGWeightGroupRcd> tokenEcalTPGWeightGroup_;
-  edm::ESGetToken<EcalTPGOddWeightIdMap, EcalTPGOddWeightIdMapRcd> tokenEcalTPGOddWeightIdMap_;
-  edm::ESGetToken<EcalTPGOddWeightGroup, EcalTPGOddWeightGroupRcd> tokenEcalTPGOddWeightGroup_;
+  edm::ESGetToken<EcalTPGWeightIdMap, EcalTPGWeightIdMapRcd> tokenEcalTPGWEightIdMap_;
+  edm::ESGetToken<EcalTPGWeightGroup, EcalTPGWeightGroupRcd> tokenEcalTPGWEightGroup_;
   edm::ESGetToken<EcalTPGFineGrainStripEE, EcalTPGFineGrainStripEERcd> tokenEcalTPGFineGrainStripEE_;
   edm::ESGetToken<EcalTPGStripStatus, EcalTPGStripStatusRcd> tokenEcalTPGStripStatus_;
 
@@ -125,8 +116,6 @@ private:
   edm::ESGetToken<EcalTPGFineGrainTowerEE, EcalTPGFineGrainTowerEERcd> tokenEcalTPGFineGrainTowerEE_;
   edm::ESGetToken<EcalTPGTowerStatus, EcalTPGTowerStatusRcd> tokenEcalTPGTowerStatus_;
   edm::ESGetToken<EcalTPGSpike, EcalTPGSpikeRcd> tokenEcalTPGSpike_;
-  // TPG TP mode
-  edm::ESGetToken<EcalTPGTPMode, EcalTPGTPModeRcd> tokenEcalTPGTPMode_;
 
   int binOfMaximum_;
   bool fillBinOfMaximumFromHistory_;
@@ -141,7 +130,6 @@ EcalTrigPrimProducer::EcalTrigPrimProducer(const edm::ParameterSet &iConfig)
       tcpFormat_(iConfig.getParameter<bool>("TcpOutput")),
       debug_(iConfig.getParameter<bool>("Debug")),
       famos_(iConfig.getParameter<bool>("Famos")),
-      tpInfoPrintout_(iConfig.getParameter<bool>("TPinfoPrintout")),
       tokenEB_(consumes<EBDigiCollection>(
           edm::InputTag(iConfig.getParameter<std::string>("Label"), iConfig.getParameter<std::string>("InstanceEB")))),
       tokenEE_(consumes<EEDigiCollection>(
@@ -151,10 +139,8 @@ EcalTrigPrimProducer::EcalTrigPrimProducer(const edm::ParameterSet &iConfig)
       tokenEcalTPGPedestals_(esConsumes()),
       tokenEcalTPGCrystalStatus_(esConsumes()),
       tokenEcalTPGSlidingWindow_(esConsumes()),
-      tokenEcalTPGWeightIdMap_(esConsumes()),
-      tokenEcalTPGWeightGroup_(esConsumes()),
-      tokenEcalTPGOddWeightIdMap_(esConsumes()),
-      tokenEcalTPGOddWeightGroup_(esConsumes()),
+      tokenEcalTPGWEightIdMap_(esConsumes()),
+      tokenEcalTPGWEightGroup_(esConsumes()),
       tokenEcalTPGFineGrainStripEE_(esConsumes()),
       tokenEcalTPGStripStatus_(esConsumes()),
       tokenEcalTPGFineGrainEBGroup_(esConsumes()),
@@ -164,7 +150,6 @@ EcalTrigPrimProducer::EcalTrigPrimProducer(const edm::ParameterSet &iConfig)
       tokenEcalTPGFineGrainTowerEE_(esConsumes()),
       tokenEcalTPGTowerStatus_(esConsumes()),
       tokenEcalTPGSpike_(esConsumes()),
-      tokenEcalTPGTPMode_(esConsumes()),
       binOfMaximum_(iConfig.getParameter<int>("binOfMaximum")),
       fillBinOfMaximumFromHistory_(-1 == binOfMaximum_),
       cacheID_(0) {
@@ -225,13 +210,12 @@ void EcalTrigPrimProducer::beginRun(edm::Run const &run, edm::EventSetup const &
 
   auto const &ecalmapping = setup.getData(tokenEcalMapping_);
   if (barrelOnly_) {
-    algo_ = std::make_unique<EcalTrigPrimFunctionalAlgo>(
-        &ecalmapping, binOfMaximum_, tcpFormat_, debug_, famos_, tpInfoPrintout_);
+    algo_ = std::make_unique<EcalTrigPrimFunctionalAlgo>(&ecalmapping, binOfMaximum_, tcpFormat_, debug_, famos_);
   } else {
     auto const &endcapGeometry = setup.getData(tokenEndcapGeom_);
     auto const &eTTmap = setup.getData(tokenETTMap_);
     algo_ = std::make_unique<EcalTrigPrimFunctionalAlgo>(
-        &eTTmap, &endcapGeometry, &ecalmapping, binOfMaximum_, tcpFormat_, debug_, famos_, tpInfoPrintout_);
+        &eTTmap, &endcapGeometry, &ecalmapping, binOfMaximum_, tcpFormat_, debug_, famos_);
   }
 }
 
@@ -251,25 +235,19 @@ unsigned long long EcalTrigPrimProducer::getRecords(edm::EventSetup const &setup
 
   // for strips
   const EcalTPGSlidingWindow *ecaltpgSlidW = &setup.getData(tokenEcalTPGSlidingWindow_);
-  const EcalTPGWeightIdMap *ecaltpgWeightMap = &setup.getData(tokenEcalTPGWeightIdMap_);
-  const EcalTPGWeightGroup *ecaltpgWeightGroup = &setup.getData(tokenEcalTPGWeightGroup_);
-  const EcalTPGOddWeightIdMap *ecaltpgOddWeightMap = &setup.getData(tokenEcalTPGOddWeightIdMap_);
-  const EcalTPGOddWeightGroup *ecaltpgOddWeightGroup = &setup.getData(tokenEcalTPGOddWeightGroup_);
+  const EcalTPGWeightIdMap *ecaltpgWeightMap = &setup.getData(tokenEcalTPGWEightIdMap_);
+  const EcalTPGWeightGroup *ecaltpgWeightGroup = &setup.getData(tokenEcalTPGWEightGroup_);
   const EcalTPGFineGrainStripEE *ecaltpgFgStripEE = &setup.getData(tokenEcalTPGFineGrainStripEE_);
   const EcalTPGStripStatus *ecaltpgStripStatus = &setup.getData(tokenEcalTPGStripStatus_);
-  const EcalTPGTPMode *ecaltpgTPMode = &setup.getData(tokenEcalTPGTPMode_);
 
   algo_->setPointers(ecaltpLin,
                      ecaltpPed,
                      ecaltpgSlidW,
                      ecaltpgWeightMap,
                      ecaltpgWeightGroup,
-                     ecaltpgOddWeightMap,
-                     ecaltpgOddWeightGroup,
                      ecaltpgFgStripEE,
                      ecaltpgBadX,
-                     ecaltpgStripStatus,
-                     ecaltpgTPMode);
+                     ecaltpgStripStatus);
 
   // .. and for EcalFenixTcp
   // get parameter records for towers
@@ -287,8 +265,7 @@ unsigned long long EcalTrigPrimProducer::getRecords(edm::EventSetup const &setup
                       ecaltpgFineGrainEB,
                       ecaltpgFineGrainTowerEE,
                       ecaltpgBadTT,
-                      ecaltpgSpike,
-                      ecaltpgTPMode);
+                      ecaltpgSpike);
 
   // we will suppose that everything is to be updated if the
   // EcalTPGLinearizationConstRcd has changed
@@ -402,7 +379,6 @@ void EcalTrigPrimProducer::fillDescriptions(edm::ConfigurationDescriptions &desc
   // The code before the existence of fillDescriptions did something special if
   // 'binOfMaximum' was missing. This replicates that behavior.
   desc.add<int>("binOfMaximum", -1)->setComment(kComment);
-  desc.add<bool>("TPinfoPrintout", false);
   descriptions.addDefault(desc);
 }
 
